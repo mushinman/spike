@@ -1,0 +1,22 @@
+{
+  "name": "my-project",
+  "version": "0.1.0",
+  "description": "My Clojure/ClojureScript project",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "watch:browser": "shadow-cljs watch browser",
+    "watch:npm": "shadow-cljs watch npm",
+    "build:browser": "shadow-cljs release browser",
+    "build:npm": "shadow-cljs release npm",
+    "build": "npm run build:browser && npm run build:npm"
+  },
+  "dependencies": {
+    "shadow-cljs": "^2.28.21"
+  },
+  "devDependencies": {}
+}

@@ -1,0 +1,14 @@
+{:deps {:aliases [:dev]}
+
+ :dev-http {8080 "resources/public"}
+
+ :builds
+ {:browser {:target :browser
+            :output-dir "resources/public/js"
+            :asset-path "/js"
+            :devtools {:http-root "resources/public"
+                      :http-port 8080}}
+
+  :npm {:target :npm-module
+        :output-dir "dist"
+        :entries [my-project.api]}}}
