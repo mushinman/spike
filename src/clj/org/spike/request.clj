@@ -1,11 +1,12 @@
-(ns org.spike.impl.request
+(ns org.spike.request
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
             [cheshire.core :as json]
             [clojure.string :as str]
             [org.spike.impl.util :refer [charset-utf8 get-str-bytes string->input-stream]]
             [clojure.core.async :refer [put! chan close!]]
-            [lambdaisland.uri :refer [uri join assoc-query]])
+            [lambdaisland.uri :refer [uri join assoc-query]]
+            [org.spike.mime :as mime])
   (:import [java.util.function Supplier BiConsumer]
            [java.util Vector Collection Optional]
            [java.net.http HttpClient HttpClient$Version HttpRequest
@@ -21,8 +22,7 @@
            [java.time Duration Period]
            [java.io InputStream File]))
 
-(def
-  ^:private default-http-client
+(def ^:private default-http-client
   "Default HTTP client. Is nil until first use. Must be .closed() if used."
   (atom nil))
 
@@ -209,8 +209,8 @@
            client base-uri method location
            version timeout accept content-type
            headers]
-    :or {accept :json
-         content-type :json}
+    :or {accept mime/json
+         content-type mime/json}
     :as http-context}]
   (let [multipart-boundary (create-multipart-boundary)
         body-publisher ^HttpRequest$BodyPublisher
@@ -232,17 +232,18 @@
           ;; If a map we encode ourselves according to the content-type.
           (map? body)
 
-          (case content-type
-            :json (HttpRequest$BodyPublishers/ofString (json/generate-string body))
-            :edn (HttpRequest$BodyPublishers/ofString (pr body))
-            :multipart (HttpRequest$BodyPublishers/ofInputStream
-                        ^Supplier
-                        (proxy [Supplier] []
-                          (get [_] (create-multipart-stream body multipart-boundary))))
-            :form-data (HttpRequest$BodyPublishers/ofString (create-form-string body))
-            (throw (ex-info "can't serialize body; unknown content-type"
-                            {:type :invalid-content-type
-                             :content-type content-type}))))]
+          (let [ct-str (mime/validate-content-type content-type)]
+            (condp = ct-str
+              mime/json (HttpRequest$BodyPublishers/ofString (json/generate-string body))
+              mime/edn (HttpRequest$BodyPublishers/ofString (pr-str body))
+              mime/multipart (HttpRequest$BodyPublishers/ofInputStream
+                              ^Supplier
+                              (proxy [Supplier] []
+                                (get [_] (create-multipart-stream body multipart-boundary))))
+              mime/form-data (HttpRequest$BodyPublishers/ofString (create-form-string body))
+              (throw (ex-info "can't serialize body; unknown content-type"
+                              {:type :invalid-content-type
+                               :content-type content-type})))))]
     (.build
      (cond->
          (doto (HttpRequest/newBuilder)
@@ -278,29 +279,13 @@
        (.setHeader "Accept-Language" ^String (str accept-language))
 
        content-type
-       (.setHeader "Content-Type" ^String (if (string? content-type)
-                                            content-type
-                                            (case content-type
-                                              :json "application/json"
-                                              :edn "application/edn"
-                                              :text "text/plain"
-                                              :form-data "application/x-www-form-urlencoded"
-                                              :multipart (str "multipart/form-data; "
-                                                              "boundary=" multipart-boundary)
-                                              (throw (ex-info "unknown content-type"
-                                                              {:type :invalid-content-type
-                                                               :content-type content-type})))))
+       (.setHeader "Content-Type" ^String (let [ct-str (mime/validate-content-type content-type)]
+                                            (if (= ct-str mime/multipart)
+                                              (str ct-str "; boundary=" multipart-boundary)
+                                              ct-str)))
 
        accept
-       (.setHeader "Accept" ^String (if (string? accept)
-                                      accept
-                                      (case accept
-                                        :json "application/json"
-                                        :edn "application/edn"
-                                        :text "text/plain"
-                                        (throw (ex-info "unknown accept type"
-                                                        {:type :invalid-accept-type
-                                                         :accept accept})))))
+       (.setHeader "Accept" ^String (mime/validate-accept accept))
 
        ;; Method.
        (= method :get)
@@ -325,10 +310,11 @@
 (defn- accept->body-handler
   ^HttpResponse$BodyHandler
   [accept]
-  (case accept
-    (:json :edn) (HttpResponse$BodyHandlers/ofInputStream)
-    ;; Else return string.
-    (HttpResponse$BodyHandlers/ofString charset-utf8)))
+  (let [accept-str (mime/validate-accept accept)]
+    (if (or (= accept-str mime/json) (= accept-str mime/edn))
+      (HttpResponse$BodyHandlers/ofInputStream)
+      ;; Else return string.
+      (HttpResponse$BodyHandlers/ofString charset-utf8))))
 
 (defn- get-header-value
   ^String
@@ -345,7 +331,38 @@
    :content-type (get-header-value (.headers http-response) "Content-Type")})
 
 (defn send
-  "Synchronously send an HTTP request based off of a context map. Returns a response map."
+  "Synchronously send an HTTP request based off of a context map. Returns a response map.
+
+  # Arguments
+  - `context`: A map of the following format:
+| Key                | Type                  | Meaning                                                                                                                             |
+|:-------------------|:----------------------|:------------------------------------------------------------------------------------------------------------------------------------|
+| `:location`        | URI or string         | (Required) If `:base-uri` is provided both values are combined to create the final request URI, else `:location` is the request URI |
+| `:method`          | keyword               | (Required) An HTTP method. One of: `:get`, `:post`, `:delete`, `:put`, `:patch`, `:head`                                            |
+| `:version`         | keyword               | (Optional) An HTTP version to use. One of: `1.1`, `2.0`                                                                             |
+| `:timeout`         | Time object or number | (Optional) HTTP request timeout. Can be a native time duration object. If a number is assumed to be milliseconds                    |
+| `:base-uri`        | URI or string         | (Optional) If provided, is prepended to `location` to create the final request URI                                                  |
+| `:client`          | Native HTTP client    | (Optional) A native HTTP client instance                                                                                            |
+| `:body`            | Any                   | (Optional) The request body. Meaning depends on `content-type`                                                                      |
+| `:query`           | Map                   | (Optional) Query arguments to append to the URI                                                                                     |
+| `:accept`          | keyword or string     | (Optional) Accept header. If a keyword: one of `:json`, `:edn`, `:text`                                                             |
+| `:content-type`    | keyword or string     | (Optional) Content-Type header. One of `:json`, `:edn`, `:text`, `:multipart`, `:form`                                              |
+| `:accept-language` | string                | (Optional) Accept-Language header value                                                                                             |
+| `:headers`         | Map                   | (Optional) Map of headers                                                                                                           |
+
+  ## Notes:
+  - If `:accept` is a string its value is set as the header.
+
+
+  # Return value
+  A map with the following format:
+| Key             | Type                        | Meaning                                            |
+|:----------------|:----------------------------|:---------------------------------------------------|
+| `:res`          | Native response object      | The native response object returned by the request |
+| `:status-code`  | int                         | HTTP status code                                   |
+| `:body`         | Native response body object | The native body object returned by the request     |
+| `:content-type` | string                      | The Content-Type header of the response            |
+  "
   [{:keys [client accept]
     :as http-context}]
   (let [client (or client
@@ -369,10 +386,9 @@
         (.whenComplete
          (reify BiConsumer
            (accept [_ response throwable]
-             (if throwable
-               (put! c (if throwable
-                         {:error throwable
-                          :context http-context}
-                         (process-response response))))
+             (put! c (if throwable
+                       {:error throwable
+                        :context http-context}
+                       (process-response response)))
              (close! c)))))
     c))
