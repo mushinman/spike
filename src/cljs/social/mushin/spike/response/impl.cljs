@@ -1,4 +1,4 @@
-(ns social.mushin.spike.response
+(ns social.mushin.spike.response.impl
   (:require [clojure.edn :as edn]
             [cljs.tools.reader.reader-types :as readers]
             [promesa.core :as p]))

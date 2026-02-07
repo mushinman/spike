@@ -108,8 +108,8 @@
    (SequenceInputStream. ^Enumeration (->
                                        (Vector. streams)
                                        .elements)))
-   ([stream1 stream2 & streams]
-    (seq-stream (into [stream1 stream2] streams))))
+  ([stream1 stream2 & streams]
+   (seq-stream (into [stream1 stream2] streams))))
 
 (defn- create-multipart-boundary
   "Generate a multipart boundary string."
@@ -125,7 +125,7 @@
   - `boundary`: A mutlipart boundary string.
 
   # Return value
-  An `InputStream` which is a valid multipart request body and contains all the contents of `body`."
+   An `InputStream` which is a valid multipart request body and contains all the contents of `body`."
   ^SequenceInputStream
   [body boundary]
   (let [[msg-streams _] ; Streams generated from the input body.
@@ -151,8 +151,8 @@
                          "\r\n\r\n"))]
 
                [(conj streams (seq-stream ; Combine the header part and the file stream.
-                               (io/input-stream header-buffer)
-                               (io/input-stream content-path)))
+                                          (io/input-stream header-buffer)
+                                          (io/input-stream content-path)))
                 false])
 
              (instance? InputStream content)
@@ -171,8 +171,8 @@
                          "\r\n\r\n"))]
 
                [(conj streams (seq-stream ; Combine the header part and the file stream.
-                               (io/input-stream header-buffer)
-                               content))
+                                          (io/input-stream header-buffer)
+                                          content))
                 false])
 
              (string? content)
@@ -189,8 +189,8 @@
                          "\r\n\r\n"))]
 
                [(conj streams (seq-stream ; Combine the header part and the file stream.
-                               (io/input-stream header-buffer)
-                               (io/input-stream (get-str-bytes content))))
+                                          (io/input-stream header-buffer)
+                                          (io/input-stream (get-str-bytes content))))
                 false])))
          ;; First position is a vector of inputstreams.
          ;; Second is true if the current stream is the first
@@ -245,13 +245,13 @@
                                :content-type content-type})))))]
     (.build
      (cond->
-         (doto (HttpRequest/newBuilder)
-           (.uri
-            (->java-uri
-             (assoc-query (if base-uri
-                            (join base-uri location)
-                            (uri location))
-                          query))))
+      (doto (HttpRequest/newBuilder)
+        (.uri
+         (->java-uri
+          (assoc-query (if base-uri
+                         (join base-uri location)
+                         (uri location))
+                       query))))
        version
        (.version ^HttpClient$Version
                  (case version
@@ -311,8 +311,8 @@
   ^String
   [^HttpHeaders headers ^String name]
   (let [v (.firstValue headers name)]
-      (when (.isPresent v)
-        (.get v))))
+    (when (.isPresent v)
+      (.get v))))
 
 (defn- process-response
   [^HttpResponse http-response]
@@ -346,7 +346,7 @@
 
 
   # Return value
-  A map with the following format:
+   A map with the following format:
 | Key             | Type                        | Meaning                                            |
 |:----------------|:----------------------------|:---------------------------------------------------|
 | `:res`          | Native response object      | The native response object returned by the request |
@@ -370,11 +370,16 @@
   (let [client (or client
                    (get-default-client))]
     (-> (p/promise (.sendAsync ^HttpClient client
-                           ^HttpRequest (build-request http-context)
-                           (HttpResponse$BodyHandlers/ofInputStream)))
+                               ^HttpRequest (build-request http-context)
+                               (HttpResponse$BodyHandlers/ofInputStream)))
         (p/then process-response))))
 
 (defn get
+  "Make a synchronous GET request to `location`. Optionally with a `query`.
+
+   Also optionally with a `http-context`.
+
+   Returns a spike response object."
   ([location query http-context]
    (send (assoc http-context
                 :location location
@@ -386,6 +391,11 @@
    (get location {} {})))
 
 (defn get-async
+  "Make a GET request to `location`. Optionally with a `query`.
+
+   Also optionally with a `http-context`.
+
+   Returns a promise to a spike response object."
   ([location query http-context]
    (send-async (assoc http-context
                       :location location
@@ -397,6 +407,11 @@
    (get-async location {} {})))
 
 (defn post
+  "Make a synchronous POST request to `location`. Optionally with a `body` and a `query`.
+
+   Also optionally with a `http-context`.
+
+   Returns a spike response object."
   ([location body query http-context]
    (send (assoc http-context
                 :body body
@@ -407,3 +422,153 @@
    (post location body query {}))
   ([location body]
    (post location body {} {})))
+
+(defn post-async
+  "Make a POST request to `location`. Optionally with a `body` and a `query`.
+
+   Also optionally with a `http-context`.
+
+   Returns a promise to a spike response object."
+  ([location body query http-context]
+   (send-async (assoc http-context
+                      :body body
+                      :location location
+                      :method :post
+                      :query query)))
+  ([location body query]
+   (post-async location body query {}))
+  ([location body]
+   (post-async location body {} {})))
+
+(defn head
+  "Make a synchronous HEAD request to `location`. Optionally with a `query`.
+
+   Also optionally with a `http-context`.
+
+   Returns a spike response object."
+  ([location query http-context]
+   (send (assoc http-context
+                :location location
+                :method :head
+                :query query)))
+  ([location query]
+   (head location query {}))
+  ([location]
+   (head location {} {})))
+
+(defn head-async
+  "Make a HEAD request to `location`. Optionally with a `query`.
+
+   Also optionally with a `http-context`.
+
+   Returns a promise to a spike response object."
+  ([location query http-context]
+   (send-async (assoc http-context
+                      :location location
+                      :method :head
+                      :query query)))
+  ([location query]
+   (head-async location query {}))
+  ([location]
+   (head-async location {} {})))
+
+(defn put
+  "Make a synchronous PUT request to `location`. Optionally with a `body` and a `query`.
+
+   Also optionally with a `http-context`.
+
+   Returns a spike response object."
+  ([location body query http-context]
+   (send (assoc http-context
+                :body body
+                :location location
+                :method :put
+                :query query)))
+  ([location body query]
+   (put location body query {}))
+  ([location body]
+   (put location body {} {})))
+
+(defn put-async
+  "Make a PUT request to `location`. Optionally with a `body` and a `query`.
+
+   Also optionally with a `http-context`.
+
+   Returns a promise to a spike response object."
+  ([location body query http-context]
+   (send-async (assoc http-context
+                      :body body
+                      :location location
+                      :method :put
+                      :query query)))
+  ([location body query]
+   (put-async location body query {}))
+  ([location body]
+   (put-async location body {} {})))
+
+(defn patch
+  "Make a synchronous PATCH request to `location`. Optionally with a `body` and a `query`.
+
+   Also optionally with a `http-context`.
+
+   Returns a spike response object."
+  ([location body query http-context]
+   (send (assoc http-context
+                :body body
+                :location location
+                :method :patch
+                :query query)))
+  ([location body query]
+   (patch location body query {}))
+  ([location body]
+   (patch location body {} {})))
+
+(defn patch-async
+  "Make a PATCH request to `location`. Optionally with a `body` and a `query`.
+
+   Also optionally with a `http-context`.
+
+   Returns a promise to a spike response object."
+  ([location body query http-context]
+   (send-async (assoc http-context
+                      :body body
+                      :location location
+                      :method :patch
+                      :query query)))
+  ([location body query]
+   (patch-async location body query {}))
+  ([location body]
+   (patch-async location body {} {})))
+
+(defn delete
+  "Make a DELETE request to `location`. Optionally with a `query`.
+
+   Also optionally with a `http-context`.
+
+   Returns a spike response object."
+  ([location query http-context]
+   (send (assoc http-context
+                :location location
+                :method :delete
+                :query query)))
+  ([location query]
+   (delete location query {}))
+  ([location]
+   (delete location {} {})))
+
+(defn delete-async
+  "Make a DELETE request to `location`. Optionally with a `query`.
+
+   Also optionally with a `http-context`.
+
+   Returns a promise to a spike response object."
+  ([location query http-context]
+   (send-async (assoc http-context
+                      :location location
+                      :method :delete
+                      :query query)))
+  ([location query]
+   (delete-async location query {}))
+  ([location]
+   (delete-async location {} {})))
+

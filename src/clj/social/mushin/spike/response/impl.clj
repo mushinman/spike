@@ -1,4 +1,4 @@
-(ns social.mushin.spike.response
+(ns social.mushin.spike.response.impl
   (:require [clojure.java.io :as io]
             [cheshire.core :as json]
             [clojure.edn :as edn]
