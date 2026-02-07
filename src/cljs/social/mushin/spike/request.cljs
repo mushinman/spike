@@ -1,8 +1,8 @@
-(ns org.spike.request
+(ns social.mushin.spike.request
   (:require [clojure.edn :as edn]
             [promesa.core :as p]
             [lambdaisland.uri :refer [uri uri? join assoc-query]]
-            [org.spike.mime :as mime]))
+            [social.mushin.spike.mime :as mime]))
 
 (defn- readable-stream?
   [obj]

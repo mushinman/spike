@@ -9,7 +9,7 @@
  {:browser {:target :browser
             :output-dir "resources/public/js"
             :asset-path "/js"
-            :modules {:main {:init-fn org.spike.core/init}}
+            :modules {:main {:init-fn social.mushin.spike.core/init}}
             :devtools {:http-root "resources/public"
                       :http-port 8080}}
 

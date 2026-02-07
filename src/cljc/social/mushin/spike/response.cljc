@@ -1,4 +1,4 @@
-(ns org.spike.response)
+(ns social.mushin.spike.response)
             
 (defn body
   "Get the body of a `response` object."

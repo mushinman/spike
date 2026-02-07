@@ -1,8 +1,8 @@
-(ns org.spike.response
+(ns social.mushin.spike.response
   (:require [clojure.java.io :as io]
             [cheshire.core :as json]
             [clojure.edn :as edn]
-            [org.spike.util :refer [charset-utf8]])
+            [social.mushin.spike.util :refer [charset-utf8]])
   (:import  [java.io PushbackReader Reader]))
 
 

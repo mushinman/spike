@@ -1,4 +1,4 @@
-(ns org.spike.util
+(ns social.mushin.spike.util
   (:require [clojure.java.io :as io])
   (:import [java.nio.charset StandardCharsets Charset]))
 

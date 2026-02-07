@@ -1,4 +1,4 @@
-(ns org.spike.mime)
+(ns social.mushin.spike.mime)
 
 (def json "application/json")
 (def edn "application/edn")

@@ -1,12 +1,12 @@
-(ns org.spike.request
+(ns social.mushin.spike.request
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
             [promesa.core :as p]
             [cheshire.core :as json]
             [clojure.string :as str]
-            [org.spike.util :refer [charset-utf8 get-str-bytes string->input-stream]]
+            [social.mushin.spike.util :refer [charset-utf8 get-str-bytes string->input-stream]]
             [lambdaisland.uri :refer [uri join assoc-query]]
-            [org.spike.mime :as mime])
+            [social.mushin.spike.mime :as mime])
   (:import [java.util.function Supplier BiConsumer]
            [java.util Vector Collection Optional]
            [java.net.http HttpClient HttpClient$Version HttpRequest

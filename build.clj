@@ -1,7 +1,7 @@
 (ns build
   (:require [clojure.tools.build.api :as b]))
 
-(def lib 'org.spike/spike)
+(def lib 'social.mushin.spike/spike)
 (def version "0.6.7")
 (def class-dir "target/classes")
 (def basis (b/create-basis {:project "deps.edn"}))
