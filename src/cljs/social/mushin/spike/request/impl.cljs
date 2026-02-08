@@ -1,7 +1,7 @@
-(ns social.mushin.spike.request
+(ns social.mushin.spike.request.impl
   (:require [clojure.edn :as edn]
             [promesa.core :as p]
-            [lambdaisland.uri :refer [uri uri? join assoc-query]]
+            [lambdaisland.uri :refer [uri join assoc-query]]
             [social.mushin.spike.mime :as mime]))
 
 (defn- readable-stream?
@@ -125,102 +125,3 @@
                    :status-code (.-status response)
                    :content-type (.get (.-headers response) "Content-Type")})))))
 
-
-(defn get-async
-  "Make a GET request to `location`. Optionally with a `query`.
-
-   Also optionally with a `http-context`.
-
-   Returns a promise to a spike response object."
-  ([location query http-context]
-   (send-async (assoc http-context
-                      :location location
-                      :method :get
-                      :query query)))
-  ([location query]
-   (get-async location query {}))
-  ([location]
-   (get-async location {} {})))
-
-(defn head-async
-  "Make a HEAD request to `location`. Optionally with a `query`.
-
-   Also optionally with a `http-context`.
-
-   Returns a promise to a spike response object."
-  ([location query http-context]
-   (send-async (assoc http-context
-                      :location location
-                      :method :head
-                      :query query)))
-  ([location query]
-   (head-async location query {}))
-  ([location]
-   (head-async location {} {})))
-
-(defn post-async
-  "Make a POST request to `location`. Optionally with a `body` and a `query`.
-
-   Also optionally with a `http-context`.
-
-   Returns a promise to a spike response object."
-  ([location body query http-context]
-   (send-async (assoc http-context
-                      :body body
-                      :location location
-                      :method :post
-                      :query query)))
-  ([location body query]
-   (post-async location body query {}))
-  ([location body]
-   (post-async location body {} {})))
-
-(defn put-async
-  "Make a PUT request to `location`. Optionally with a `body` and a `query`.
-
-   Also optionally with a `http-context`.
-
-   Returns a promise to a spike response object."
-  ([location body query http-context]
-   (send-async (assoc http-context
-                      :body body
-                      :location location
-                      :method :put
-                      :query query)))
-  ([location body query]
-   (put-async location body query {}))
-  ([location body]
-   (put-async location body {} {})))
-
-(defn patch-async
-  "Make a PATCH request to `location`. Optionally with a `body` and a `query`.
-
-   Also optionally with a `http-context`.
-
-   Returns a promise to a spike response object."
-  ([location body query http-context]
-   (send-async (assoc http-context
-                      :body body
-                      :location location
-                      :method :patch
-                      :query query)))
-  ([location body query]
-   (patch-async location body query {}))
-  ([location body]
-   (patch-async location body {} {})))
-
-(defn delete-async
-  "Make a PATCH request to `location`. Optionally with a `query`.
-
-   Also optionally with a `http-context`.
-
-   Returns a promise to a spike response object."
-  ([location query http-context]
-   (send-async (assoc http-context
-                      :location location
-                      :method :delete
-                      :query query)))
-  ([location query]
-   (delete-async location query {}))
-  ([location]
-   (delete-async location {} {})))
