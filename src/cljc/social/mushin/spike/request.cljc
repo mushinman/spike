@@ -72,7 +72,8 @@
    (patch-context http-context location {} {})))
 
 #?(:clj
-   (defn send
+   (do
+     (defn send
      "Synchronously send an HTTP request based off of a context map. Returns a response map.
 
   # Arguments
@@ -187,7 +188,7 @@
      ([location query]
       (delete location query {}))
      ([location]
-      (delete location {} {}))))
+      (delete location {} {})))))
 
 (defn send-async
   "Asynchronously send an HTTP request based off of a context map. Returns a promise.
@@ -245,7 +246,7 @@
 
    Returns a promise to a spike response object."
   ([location query http-context]
-   (send-async (head-context http-context location qiery)))
+   (send-async (head-context http-context location query)))
   ([location query]
    (head-async location query {}))
   ([location]
