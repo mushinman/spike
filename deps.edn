@@ -1,7 +1,6 @@
 {:paths ["src/cljc" "resources"]
 
  :deps {org.clojure/clojure {:mvn/version "1.12.0"}
-        org.clojure/core.async {:mvn/version "1.8.741"}
         org.clojure/clojurescript {:mvn/version "1.11.132"}
         funcool/promesa {:mvn/version "11.0.678"}
         cheshire/cheshire {:mvn/version "6.1.0"}

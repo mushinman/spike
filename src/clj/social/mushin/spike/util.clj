@@ -1,6 +1,7 @@
 (ns social.mushin.spike.util
   (:require [clojure.java.io :as io])
-  (:import [java.nio.charset StandardCharsets Charset]))
+  (:import [java.nio.charset StandardCharsets Charset]
+           [java.util Base64]))
 
 (def ^Charset charset-utf8
   "UTF8 charset."
@@ -11,6 +12,13 @@
   ^bytes
   [^String s]
   (.getBytes s charset-utf8))
+
+(defn str->base64
+  "Encoding a string into base64."
+  ^String
+  [^String s]
+  (-> (Base64/getEncoder)
+      (.encodeToString (.getBytes s charset-utf8))))
 
 (defn string->input-stream
   "Convert a string to an `InputStream` that points to a UTF8 encoded buffer."

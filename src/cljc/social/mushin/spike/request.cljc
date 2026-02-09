@@ -92,9 +92,14 @@
 | `:content-type`    | keyword or string     | (Optional) Content-Type header. One of `:json`, `:edn`, `:text`, `:multipart`, `:form`                                              |
 | `:accept-language` | string                | (Optional) Accept-Language header value                                                                                             |
 | `:headers`         | Map                   | (Optional) Map of headers                                                                                                           |
+| `:authorization`   | Tuple                 | (Optional) Tuple of a type and payload.                                                                                             |
+| `:api-key`         | String                | (Optional) API key.                                                                                                                 |
 
   ## Notes:
   - If `:accept` is a string its value is set as the header.
+  - `:authorization` is a tuple with a type and payload. Type can be `:basic` or `:bearer`.
+      If `:bearer`, the second value should be a string.
+      If `:basic`, the second value should be a map containing a `:username` and a `:password`.
 
 
   # Return value
@@ -199,6 +204,7 @@
 |:-------------------|:----------------------|:------------------------------------------------------------------------------------------------------------------------------------|
 | `:location`        | URI or string         | (Required) If `:base-uri` is provided both values are combined to create the final request URI, else `:location` is the request URI |
 | `:method`          | keyword               | (Required) An HTTP method. One of: `:get`, `:post`, `:delete`, `:put`, `:patch`, `:head`                                            |
+| `:version`         | keyword               | (Optional) An HTTP version to use. One of: `1.1`, `2.0`                                                                             |
 | `:timeout`         | Time object or number | (Optional) HTTP request timeout. Can be a native time duration object. If a number is assumed to be milliseconds                    |
 | `:base-uri`        | URI or string         | (Optional) If provided, is prepended to `location` to create the final request URI                                                  |
 | `:client`          | Native HTTP client    | (Optional) A native HTTP client instance                                                                                            |
@@ -208,9 +214,14 @@
 | `:content-type`    | keyword or string     | (Optional) Content-Type header. One of `:json`, `:edn`, `:text`, `:multipart`, `:form`                                              |
 | `:accept-language` | string                | (Optional) Accept-Language header value                                                                                             |
 | `:headers`         | Map                   | (Optional) Map of headers                                                                                                           |
+| `:authorization`   | Tuple                 | (Optional) Tuple of a type and payload.                                                                                             |
+| `:api-key`         | String                | (Optional) API key.                                                                                                                 |
 
   ## Notes:
   - If `:accept` is a string its value is set as the header.
+  - `:authorization` is a tuple with a type and payload. Type can be `:basic` or `:bearer`.
+      If `:bearer`, the second value should be a string.
+      If `:basic`, the second value should be a map containing a `:username` and a `:password`.
 
 
   # Return value
