@@ -37,7 +37,7 @@
 
 
   # Return value
-  A map with the following format:
+   A map with the following format:
 | Key             | Type                        | Meaning                                            |
 |:----------------|:----------------------------|:---------------------------------------------------|
 | `:res`          | Native response object      | The native response object returned by the request |
@@ -60,37 +60,42 @@
                           (uri location))
                         query))
                   (clj->js
-                   {"method" "GET"}
-                   (cond-> {"method"
-                            (case method
-                              :get "GET"
-                              :post "POST"
-                              :put "PUT"
-                              :patch "PATCH"
-                              :delete "DELETE"
-                              :head "HEAD")
+                   (cond->
+                    {"method"
+                     (case method
+                       :get "GET"
+                       :post "POST"
+                       :put "PUT"
+                       :patch "PATCH"
+                       :delete "DELETE"
+                       :head "HEAD"
+                       (throw (if method
+                                (ex-info "Invalid HTTP method"
+                                         {:method method})
+                                (ex-info "No HTTP method provided"
+                                         {}))))
+                     "headers"
+                     (cond-> (or headers {})
+                       accept-language (assoc "Accept-Language" (str accept-language))
+                       accept-str (assoc "Accept" accept-str)
+                       content-type-str (assoc "Content-Type" content-type-str))}
 
-                            "headers"
-                            (cond-> (or headers {})
-                              accept-language (assoc "Accept-Language" (str accept-language))
-                              accept-str (assoc "Accept" accept-str)
-                              content-type-str (assoc "Content-Type" content-type-str))
-
-                            ;; TODO check if string is readablestream
-                            ;; add readablestream to possible body types
-                            "body"
+                     ;; TODO check if string is readablestream
+                     ;; add readablestream to possible body types
+                     body
+                     (assoc "body"
                             (condp = content-type-str
                               mime/json
-                              (cond
-                                (string? body) body
-                                (readable-stream? body) body
-                                :else (js/JSON.stringify (clj->js body)))
+                              (if (or (string? body)
+                                      (readable-stream? body))
+                                body
+                                (js/JSON.stringify (clj->js body)))
 
                               mime/edn
-                              (cond
-                                (string? body) body
-                                (readable-stream? body) body
-                                :else (pr-str body))
+                              (if (or (string? body)
+                                      (readable-stream? body))
+                                body
+                                (pr-str body))
 
                               mime/text (str body)
 
@@ -114,10 +119,9 @@
                                      (.append form-data name content))
                                    form-data)
                                  (js/FormData.)
-                                 body)))
-
-                            timeout
-                            (js/AbortSignal.timeout timeout)})))
+                                 body))))
+                     timeout
+                     (assoc "timeout" (js/AbortSignal.timeout timeout)))))
         p/promise
         (p/then (fn [response]
                   {:res response

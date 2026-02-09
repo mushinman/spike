@@ -16,14 +16,16 @@
                  slipset/deps-deploy {:mvn/version "0.2.2"}}
           :ns-default build}
 
-  :nrepl {:extra-deps {nrepl/nrepl {:mvn/version "1.1.0"}}
+  :nrepl {:extra-paths ["dev"]
+          :extra-deps {nrepl/nrepl {:mvn/version "1.1.0"}}
           :main-opts  ["-m" "nrepl.cmdline" "-i"]
           :jvm-opts   ["--add-opens=java.base/java.nio=org.apache.arrow.memory.core,ALL-UNNAMED"
                        "--sun-misc-unsafe-memory-access=allow"
                        "-Dio.netty.tryReflectionSetAccessible=true"
                        "--enable-native-access=ALL-UNNAMED"
                        "--add-opens=java.base/java.nio=ALL-UNNAMED"]}
-  :cider {:extra-deps {nrepl/nrepl       {:mvn/version "1.1.0"}
+  :cider {:extra-paths ["dev"]
+          :extra-deps {nrepl/nrepl       {:mvn/version "1.1.0"}
                        cider/cider-nrepl {:mvn/version "0.45.0"}}
           :main-opts  ["-m" "nrepl.cmdline" "--middleware" "[cider.nrepl/cider-middleware]" "-i"]
           :jvm-opts   ["--add-opens=java.base/java.nio=ALL-UNNAMED"

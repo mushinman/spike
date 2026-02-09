@@ -1,5 +1,6 @@
 .proxy-url
 .env
+shadow-cljs.local.edn
 
 # Created by https://www.toptal.com/developers/gitignore/api/emacs,vim,node,clojure
 # Edit at https://www.toptal.com/developers/gitignore?templates=emacs,vim,node,clojure
